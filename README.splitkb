@@ -1,0 +1,45 @@
+# Setup
+After your usual `git clone git@github.com:adafruit/circuitpython.git && cd circuitpython`,
+on your local machine, run:
+```bash
+docker image build -t circuitpython-image -f ./Dockerfile.splitkb .
+docker container create --name circuitpython-container -it --user $(id -u):$(id -g) -w /circuitpython -v "$(pwd)":/circuitpython circuitpython-image /bin/bash
+docker container start -i circuitpython-container
+```
+The last command enters the Docker container
+
+_Note: Docker may give an error like "groups: cannot find name for group ID 1000". Ignore this._
+
+Inside the docker container, complete setup with:
+```bash
+cd /circuitpython/ports/raspberrypi && make fetch-port-submodules
+cd /circuitpython && make -j$(getconf _NPROCESSORS_ONLN) -C mpy-cross
+```
+The container is now ready for use.
+If you wish to, exit with `exit`, or Ctrl-D.
+
+# Building
+Enter the container with `docker container start -i circuitpython-container`
+
+Run:
+```bash
+cd /circuitpython/ports/raspberrypi && make -j$(getconf _NPROCESSORS_ONLN) BOARD=splitkb_liatris
+```
+
+This generates circuitpython/ports/raspberrypi/build-splitkb_liatris/firmware.uf2
+
+# Committing
+Enter the container with `docker container start -i circuitpython-container`
+
+Run:
+```bash
+cd /circuitpython && pre-commit run --all-files
+```
+
+# Cleanup
+Exit the container and clean up on local machine using:
+```bash
+docker container rm circuitpython-container
+docker image rm circuitpython-image
+docker image prune
+```

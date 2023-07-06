@@ -1,0 +1,37 @@
+# Written using the guide on https://learn.adafruit.com/building-circuitpython/build-circuitpython
+# as of 6 JUL 2023
+
+FROM ubuntu:22.04
+
+RUN  apt-get update \
+  && apt-get install -y software-properties-common \
+  && add-apt-repository ppa:pybricks/ppa \
+  && add-apt-repository ppa:git-core/ppa \
+  && apt-get update \
+  && apt-get install -y \
+  curl \
+  wget \
+  build-essential \
+  git \
+  git-lfs \
+  gettext \
+  uncrustify \
+  cmake \
+  python3-pip \
+  && rm -rf /var/lib/apt/lists/*
+
+# TODO might need mtools, mkfs.fat
+
+RUN wget -O /tmp/toolchain.tar.bz2 "https://developer.arm.com/-/media/Files/downloads/gnu-rm/10-2020q4/gcc-arm-none-eabi-10-2020-q4-major-x86_64-linux.tar.bz2?revision=ca0cbf9c-9de2-491c-ac48-898b5bbc0443&la=en&hash=68760A8AE66026BCF99F05AC017A6A50C6FD832A" \
+  && tar -xvf /tmp/toolchain.tar.bz2 -C /opt/ \
+  && rm /tmp/toolchain.tar.bz2
+
+ENV PATH=/opt/gcc-arm-none-eabi-10-2020-q4-major/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+COPY requirements-*.txt /tmp/
+RUN pip install --upgrade -r /tmp/requirements-dev.txt \
+  && pip install --upgrade -r /tmp/requirements-doc.txt
+
+# NO INSTALL COMMANDS AFTER THIS
+RUN mkdir -p /home/anonymous && chmod 777 /home/anonymous
+ENV HOME=/home/anonymous
